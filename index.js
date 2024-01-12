@@ -23,6 +23,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const { binaryToDataURI, dataURIToBinary } = require("./imageUtils");
+const TransactionModel = require("./models/TransactionModel");
 
 const app = express();
 app.use(express.json());
@@ -63,9 +64,10 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    const user = await UserModel.findOne({ email, password });
+    let user = await UserModel.findOne({ email, password });
 
     if (user) {
+      user = user.toObject()
       user.displayImage = binaryToDataURI(user.displayImage);
       res.json(user);
     } else {
@@ -96,6 +98,24 @@ app.get("/get-all-users", async (req, res) => {
 
     if (users) {
       res.json(usersWithImageDataURI);
+    } else {
+      res.status(404).json({ error: "Not Users Found" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+app.get("/get-all-transactions", async (req, res) => {
+  try {
+    const alltransactions = await TransactionModel.find({});
+    console.log(alltransactions);
+    if (alltransactions) {
+      res.json(alltransactions);
+    } else {
+      res.status(404).json({ error: "Not Transactions Found" });
     }
   } catch (error) {
     console.log(error);
