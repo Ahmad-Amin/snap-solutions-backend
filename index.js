@@ -67,7 +67,7 @@ app.post("/login", async (req, res) => {
     let user = await UserModel.findOne({ email, password });
 
     if (user) {
-      user = user.toObject()
+      user = user.toObject();
       user.displayImage = binaryToDataURI(user.displayImage);
       res.json(user);
     } else {
@@ -107,7 +107,6 @@ app.get("/get-all-users", async (req, res) => {
   }
 });
 
-
 app.get("/get-all-transactions", async (req, res) => {
   try {
     const alltransactions = await TransactionModel.find({});
@@ -119,6 +118,55 @@ app.get("/get-all-transactions", async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post("/create-new-transaction", async (req, res) => {
+  try {
+    const {
+      phoneNumber,
+      amount,
+      message: transactionMessage,
+      recipient: userId,
+      transactionType,
+    } = req.body;
+
+    if (!(amount || userId)) {
+      return res.status(400).json({ error: "No amount or recipient is given" });
+    }
+
+    console.log(userId);
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: "User not found, Can't Process Request" });
+    }
+
+
+    const newTransaction = new TransactionModel({
+      receiverName: user.name,
+      transactionDate: new Date(Date.now()),
+      user: user._id,
+      transactionType,
+      amount,
+      phoneNumber,
+      status: "Done",
+      transactionMessage,
+    });
+
+    const savedTransaction = await newTransaction.save();
+
+    if (savedTransaction) {
+      console.log("saved User-->", savedTransaction);
+      res.status(201).json(savedTransaction);
+    } else {
+      res.status(404).json({ error: "Cannot Created Transaction due to some issue" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -249,7 +297,7 @@ app.post("/add-new-user", async (req, res) => {
 
 app.delete("/user:userId", async (req, res) => {
   const { userId } = req.body.id;
-  console.log()
+  console.log();
 });
 
 const generateDummyPassword = () => {

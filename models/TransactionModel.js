@@ -2,10 +2,12 @@ const mongoose = require("../mongoose");
 
 const TransactionSchema = new mongoose.Schema({
   receiverName: String,
-  type: String,
-  Status: String,
+  transactionType: String,
+  status: String,
   transactionDate: Date,
   amount: Number,
+  transactionMessage: String,
+  phoneNumber: String,
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
